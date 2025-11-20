@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken');
 const express = require("express");
 const User = require('./model');
 const Session =require("../session/model");
@@ -27,8 +28,18 @@ function signRefresh(user) {
     { expiresIn: process.env.JWT_REFRESH_TTL || '7d' }
   );
 }
+// let ttest = async () => {
+// const passwordHash = await hashPassword("mrbona6r7d5hgh");
+//   const user = await User.create({
+//     fullName: 'Mr Bobai ',
+//     email: 'manzotravels@gmail.com',
+//     passwordHash,
+//     role: 'main_admin',
+//   });
 
-
+//   console.log(user);
+// }
+// ttest();
 router.post('/subadmin/signup',  async (req, res) => {
 try {
     const { fullName, email, password } = req.body;
@@ -66,7 +77,7 @@ try {
 
   const ok = await verifyPassword(password, user.passwordHash);
   if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
-
+// console.log("User logged in:", user, ok);
   const accessToken = signAccess(user);
   const refreshToken = signRefresh(user);
 
