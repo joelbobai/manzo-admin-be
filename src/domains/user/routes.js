@@ -13,6 +13,21 @@ const {
 
 const router = express.Router();
 
+function serializeUser(user) {
+  return {
+    id: user._id.toString(),
+    fullName: user.fullName,
+    email: user.email,
+    role: user.role,
+    isActive: user.isActive,
+    canReserveTickets: user.canReserveTickets,
+    canIssueTickets: user.canIssueTickets,
+    canRetrieveTickets: user.canRetrieveTickets,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
+
 // TODO: replace with real email delivery
 async function sendPasswordResetEmail(email, link) {
   console.info('Sending password reset email', { email, link });
