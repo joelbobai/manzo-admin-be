@@ -2,9 +2,9 @@ const express = require("express");
 const FlightBooking = require("./model");
 const mongoose = require("mongoose");
 const { getAccessToken } = require("../../config/amadeus");
-const {
-flightBooking
-} = require("./controller");
+const { flightBooking } = require("./controller");
+const { requireAuth } = require("../../middleware/auth");
+const User = require("../user/model");
 
 let accessToken;
 let accessTokenPromise;
@@ -67,6 +67,37 @@ router.use(async (req, res, next) => {
   next();
 });
 
+const ensureCanIssueTickets = async (req, res, next) => {
+  const { role, sub } = req.user || {};
+
+  if (role === "main_admin") {
+    return next();
+  }
+
+  if (role !== "sub_admin") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  try {
+    const user = await User.findById(sub);
+
+    if (!user || !user.isActive) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    if (!user.canIssueTickets) {
+      return res
+        .status(403)
+        .json({ message: "Sub-admin is not allowed to issue tickets" });
+    }
+
+    return next();
+  } catch (error) {
+    console.error("Error checking issuance permission", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 router.post("/createdIssuanceBooked", async (req, res) => {
   try {
     const { bookingId } = req.body;
@@ -95,25 +126,30 @@ router.post("/createdIssuanceBooked", async (req, res) => {
 
 
 // Flight Create Orders => Flight IssueTicket
-router.post("/issueTicket", async (req, res) => {
-  try {
- 
-    let { reservedId } = req.body;
-    
-    if (!reservedId) {
-      return res.status(400).send("Empty travelers input fields!");
+router.post(
+  "/issueTicket",
+  requireAuth,
+  ensureCanIssueTickets,
+  async (req, res) => {
+    try {
+
+      let { reservedId } = req.body;
+
+      if (!reservedId) {
+        return res.status(400).send("Empty travelers input fields!");
+      }
+
+      const booked = await flightBooking({
+        reservedId,
+        accessToken,
+      });
+      res.status(200).json({ issueId: booked?._id, status: booked?.status });
+    } catch (error) {
+      console.error("Error sending booking:1", error);
+      console.error("Error sending boooking:2", error?.response?.data?.errors);
+      res.sendStatus(500);
     }
- 
-    const booked = await flightBooking({
-      reservedId,
-      accessToken
-    });
-    res.status(200).json({ issueId: booked?._id, status: booked?.status });
-  } catch (error) {
-    console.error("Error sending booking:1", error);
-    console.error("Error sending boooking:2", error?.response?.data?.errors);
-    res.sendStatus(500);
   }
-});
+);
 
 module.exports = router;
