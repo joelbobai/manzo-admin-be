@@ -241,7 +241,7 @@ const userId = req.currentUser;
 );
 
 // Get all flight bookings
-router.get("/bookings", requireAuth, ensureCanIssueTickets, async (req, res) => {
+router.get("/bookings", requireAuth, async (req, res) => {
   try {
     const bookings = await FlightBooking.find();
     res.status(200).json(bookings);
