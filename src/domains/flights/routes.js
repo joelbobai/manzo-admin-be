@@ -2,7 +2,7 @@ const express = require("express");
 const FlightBooking = require("./model");
 const mongoose = require("mongoose");
 const { getAccessToken } = require("../../config/amadeus");
-const { flightBooking } = require("./controller");
+const { flightBooking, flightCancelTickets } = require("./controller");
 const { requireAuth } = require("../../middleware/auth");
 const User = require("../user/model");
 
@@ -69,8 +69,9 @@ router.use(async (req, res, next) => {
 
 const ensureCanIssueTickets = async (req, res, next) => {
   const { role, sub } = req.user || {};
-
+    req.currentUser = sub;
   if (role === "main_admin") {
+
     return next();
   }
 
@@ -86,6 +87,37 @@ const ensureCanIssueTickets = async (req, res, next) => {
     }
 
     if (!user.canIssueTickets) {
+      return res
+        .status(403)
+        .json({ message: "Sub-admin is not allowed to issue tickets" });
+    }
+
+    return next();
+  } catch (error) {
+    console.error("Error checking issuance permission", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+const ensurecanCancelTickets = async (req, res, next) => {
+ const { role, sub } = req.user || {};
+    req.currentUser = sub;
+  if (role === "main_admin") {
+
+    return next();
+  }
+
+  if (role !== "sub_admin") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  try {
+    const user = await User.findById(sub);
+
+    if (!user || !user.isActive) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    if (!user.canCancelTickets) {
       return res
         .status(403)
         .json({ message: "Sub-admin is not allowed to issue tickets" });
@@ -125,6 +157,49 @@ router.post("/createdIssuanceBooked", async (req, res) => {
 });
 
 
+
+// Flight Create Orders => Flight IssueCancel
+router.post(
+  "/issueCancel",
+  requireAuth,
+  ensurecanCancelTickets,
+  async (req, res) => {
+    try {
+
+      let { reservationId } = req.body;
+const userId = req.currentUser;
+
+      if (!reservationId) {
+        return res.status(400).send("Empty reservationId input fields!");
+      }
+
+      const user = await User.findById(userId);
+
+    if (!user || !user.isActive) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+      const booked = await flightCancelTickets({
+        reservedId: reservationId,
+        accessToken,
+        userId: userId
+      });
+      res.status(200).json({FlightBooked: booked.FlightBooked, 
+        MFlight: booked.MFlight,
+        littelFlightInfo: booked.littelFlightInfo,
+        reservationId: booked.reservationId,
+        status: booked.status
+      });
+    } catch (error) {
+      console.error("Error sending booking:1", error);
+      console.error("Error sending boooking:2", error?.response?.data?.errors);
+      res.sendStatus(500);
+    }
+  }
+);
+
+
+
 // Flight Create Orders => Flight IssueTicket
 router.post(
   "/issueTicket",
@@ -133,17 +208,30 @@ router.post(
   async (req, res) => {
     try {
 
-      let { reservedId } = req.body;
+      let { reservationId } = req.body;
+const userId = req.currentUser;
 
-      if (!reservedId) {
-        return res.status(400).send("Empty travelers input fields!");
+      if (!reservationId) {
+        return res.status(400).send("Empty reservationId input fields!");
       }
 
-      const booked = await flightBooking({
-        reservedId,
+      const user = await User.findById(userId);
+
+    if (!user || !user.isActive) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+      const booked = await flightCancelTickets({
+        reservedId: reservationId,
         accessToken,
+        userId: userId
       });
-      res.status(200).json({ issueId: booked?._id, status: booked?.status });
+      res.status(200).json({FlightBooked: booked.FlightBooked, 
+        MFlight: booked.MFlight,
+        littelFlightInfo: booked.littelFlightInfo,
+        reservationId: booked.reservationId,
+        status: booked.status
+      });
     } catch (error) {
       console.error("Error sending booking:1", error);
       console.error("Error sending boooking:2", error?.response?.data?.errors);

@@ -8,6 +8,9 @@ const FlightBookingSchema = new Schema(
       enum: ["reserved", "booked", "cancelled"],
       default: "reserved",
     },
+    userId:{
+         type: String,
+    },
     FlightBooked: {
       type: Object,
       required: true,

@@ -59,7 +59,35 @@ function getCommission(iataCode) {
 
 
 
+const flightCancel = async (data) => {
+  try {
 
+    const response = await axios.post(
+      `${AMADEUS_DOMAIN}/v1/booking/flight-orders/${data?.id}`,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/vnd.amadeus+json",
+          "ama-client-ref": AMA_API_KEY,
+          Authorization: `Bearer ${data?.accessToken}`,
+        },
+      }
+    );
+
+    if (response) {
+      console.log(response)
+    }
+
+    // if (!flight) {
+    //   throw new Error("Unable to retrieve flight issuance details");
+    // }
+
+    return response;
+  } catch (err) {
+    console.error("error Cancel Tickets", err);
+    throw err;
+  }
+};
 
 const flightIssuance = async (data) => {
   try {
@@ -149,7 +177,7 @@ const flightCommission = async (data) => {
   }
 };
 
-const flightBooking = async (bookingInput) => {
+const flightBooking = async (bookingInput) =>  { 
   const mails = ["manzotravels@gmail.com", "joelisaiahbobai@gmail.com"];
 
   const commissionPercentage = getCommission(
@@ -192,14 +220,7 @@ const flightBooking = async (bookingInput) => {
     //   throw Error("Paystack transaction was not successful");
     // }
 
-    bookingInput?.Travelers?.forEach((traveler) => {
-      const email = traveler?.contact?.emailAddress;
-      if (email) {
-        mails.push(email);
-      }
-    });
-
-    const uniqueMails = [...new Set(mails)];
+    
 
     if (!bookingInput?.reservedId) {
       throw new Error("Unable to reserve flight booking");
@@ -209,26 +230,19 @@ const flightBooking = async (bookingInput) => {
       id: bookingInput?.reservedId,
       accessToken: bookingInput.accessToken,
       data: commissionPayload,
-      mails: uniqueMails,
     });
 
     const issuanceResponse = await flightIssuance({
       id: bookingInput?.reservedId,
       accessToken: bookingInput.accessToken,
-      mails: uniqueMails,
-      dictionaries: bookingInput.littelFlightInfo?.[0]?.dictionaries,
     });
 
     const booking = await FlightBooking.findOneAndUpdate(
       { reservationId: bookingInput.reservedId },
       {
         $set: {
+            userId: bookingInput.userId,
           FlightBooked: issuanceResponse?.data?.data,
-          littelFlightInfo: bookingInput.littelFlightInfo,
-          travelers: bookingInput.Travelers,
-          reference: bookingInput.transactionReference,
-          MFlight: bookingInput?.flight,
-        //   transactionResponse: verifyTransaction,
           status: "booked",
         },
         $setOnInsert: {
@@ -238,6 +252,15 @@ const flightBooking = async (bookingInput) => {
       { new: true, upsert: true }
     );
     const bookingId = booking?._id;
+
+    issuanceResponse?.data?.data?.travelers?.forEach((traveler) => {
+      const email = traveler?.contact?.emailAddress;
+      if (email) {
+        mails.push(email);
+      }
+    });
+
+    const uniqueMails = [...new Set(mails)];
 
     sendIssuanceEmail({
       flight: issuanceResponse?.data?.data,
@@ -258,9 +281,46 @@ const flightBooking = async (bookingInput) => {
   }
 };
 
+const flightCancelTickets = async (bookingInput) =>  { 
+
+try{
+    
+    
+
+    if (!bookingInput?.reservedId) {
+      throw new Error("Unable to reserve flight booking");
+    }
+
+    
+
+  await flightCancel({
+      id: bookingInput?.reservedId,
+      accessToken: bookingInput.accessToken,
+    });
+
+    const booking = await FlightBooking.findOneAndUpdate(
+      { reservationId: bookingInput.reservedId },
+      {
+        $set: {
+          status: "cancelled",
+        },
+        $setOnInsert: {
+          reservationId: bookingInput.reservedId,
+        },
+      },
+      { new: true, upsert: true }
+    );
+    
+    return booking;
+  } catch (err) {
+    const errorMessage = err?.response?.data || err.message || err;
+    console.error("error in booking and issuing ticket", errorMessage);
+    throw err;
+  }
+};
 
 
 module.exports = {
-
+flightCancelTickets,
   flightBooking
 };

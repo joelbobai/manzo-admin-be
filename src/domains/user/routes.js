@@ -251,13 +251,14 @@ router.patch(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { canIssueTickets, canReserveTickets, canRetrieveTickets } = req.body;
+      const { canIssueTickets, canReserveTickets, canRetrieveTickets, canCancelTickets } = req.body;
 
       const update = {};
 
       if (typeof canIssueTickets === 'boolean') update.canIssueTickets = canIssueTickets;
       if (typeof canReserveTickets === 'boolean') update.canReserveTickets = canReserveTickets;
       if (typeof canRetrieveTickets === 'boolean') update.canRetrieveTickets = canRetrieveTickets;
+      if (typeof canCancelTickets === 'boolean') update.canCancelTickets = canCancelTickets;
 
       if (Object.keys(update).length === 0) {
         return res.status(400).json({ message: 'No valid permissions provided' });

@@ -12,6 +12,7 @@ const UserSchema = new Schema(
     },
     canReserveTickets: { type: Boolean, default: false },
     canIssueTickets: { type: Boolean, default: false },
+    canCancelTickets: { type: Boolean, default: false },
     canRetrieveTickets: { type: Boolean, default: false },
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ['main_admin', 'sub_admin'], required: true },
