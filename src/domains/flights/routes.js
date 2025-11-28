@@ -152,4 +152,15 @@ router.post(
   }
 );
 
+// Get all flight bookings
+router.get("/bookings", requireAuth, ensureCanIssueTickets, async (req, res) => {
+  try {
+    const bookings = await FlightBooking.find();
+    res.status(200).json(bookings);
+  } catch (error) {
+    console.error("Error fetching bookings", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 module.exports = router;
