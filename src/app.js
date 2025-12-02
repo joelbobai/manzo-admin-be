@@ -22,13 +22,10 @@ app.use(express.urlencoded({ extended: true }));
 
 // Allow multiple origins
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://manzotravels.com",
-  "https://www.manzotravels.com",
+
   "https://manzo.ng",
-  "https://www.manzo.ng",
-  "https://manzo.com.ng",
-  "https://www.manzo.com.ng",
+
+  "https://admin.manzo.com.ng",
 ];
 
 const corsOptions = {
