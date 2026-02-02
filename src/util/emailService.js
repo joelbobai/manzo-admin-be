@@ -26,4 +26,5 @@ const sendPasswordResetEmail = async ({email, subject, message, duration, genera
 module.exports = {
   sendReservationEmail,
   sendIssuanceEmail,
+  sendPasswordResetEmail,
 };
