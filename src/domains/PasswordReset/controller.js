@@ -58,11 +58,12 @@ const sendPasswordResetOTPEmail = async (email) => {
 
     // generate pin
     const generatedOTP = await generateOTP();
+ 
   //  const currentUrl = `http://localhost:5000/api/v1/email_verification/verify/${email}/${generatedOTP}`;
 
-    await sendPasswordResetEmail({email, subject, message, duration, generatedOTP});
+    await sendPasswordResetEmail({email, subject, message, duration, generatedOTP, currentUrl});
 const hashedOTP = await hashData(generatedOTP);
-
+  const currentUrl = `https://admin.manzo.com.ng/reset-password?token=${hashedOTP}`
     const newOTP = new OTP({
       email,
       otp: hashedOTP,

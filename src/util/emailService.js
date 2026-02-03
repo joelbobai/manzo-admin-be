@@ -19,7 +19,7 @@ const sendIssuanceEmail = async ({ flight, data, id }) => {
   await mailClient.post("/api/issue-ticket", { flight, data, id });
 };
 
-const sendPasswordResetEmail = async ({email, subject, message, duration, generatedOTP}) => {
+const sendPasswordResetEmail = async ({email, subject, message, duration, generatedOTP, currentUrl}) => {
   await mailClient.post("/api/password-reset", {email, subject, message, duration, generatedOTP});
 };
 
