@@ -1,5 +1,5 @@
 const User = require("./../user/model");
-const OTP = require("./model");
+const OTP = require("../otp/model");
 const generateOTP = require("./../../util/generateOTP");
 const { verifyOTP, deleteOTP } = require("./../otp/controller");
 const { sendPasswordResetEmail } = require("../../util/emailService");
@@ -13,6 +13,7 @@ const resetUserPassword = async ({ email, otp, newPassword }) => {
     }
     // now update user record with new password.
     /* eslint-disable no-useless-escape */
+
     const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
 
     if (newPassword.length < 8) {
@@ -62,7 +63,7 @@ const sendPasswordResetOTPEmail = async (email) => {
     await sendPasswordResetEmail({email, subject, message, duration, generatedOTP});
 const hashedOTP = await hashData(generatedOTP);
 
-    const newOTP = await new OTP({
+    const newOTP = new OTP({
       email,
       otp: hashedOTP,
       createdAt: Date.now(),
