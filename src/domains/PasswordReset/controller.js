@@ -39,7 +39,7 @@ const resetUserPassword = async ({ token, code, password }) => {
     }
     // hash new password
     const hashedNewPassword = await hashPassword(password);
-    await User.updateOne({ email }, { password: hashedNewPassword });
+    await User.updateOne({ email }, { passwordHash: hashedNewPassword });
     await deleteOTP(email);
 
     return;
