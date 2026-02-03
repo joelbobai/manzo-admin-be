@@ -27,7 +27,8 @@ const resetUserPassword = async ({ token, code, password }) => {
     /* eslint-disable no-useless-escape */
 
     const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
-
+console.log("Password:", password);
+console.log("email", email);
     if (password.length < 8) {
       throw Error("Password is too short!");
     } else if (!specialChars.test(password)) {
