@@ -9,12 +9,12 @@ const {
 
 router.post("/reset", async (req, res) => {
   try {
-    let { email, otp, newPassword } = req.body;
-    if (!(email && otp && newPassword))
+    let { token, code, password } = req.body;
+    if (!(token && code && password))
       throw Error("Empty credentials are not allowed.");
 
-    await resetUserPassword({ email, otp, newPassword });
-    res.status(200).json({ email, passwordReset: true });
+    await resetUserPassword({ token, code, password });
+    res.status(200).json({ status: "OK", passwordReset: true });
   } catch (error) {
     res.status(400).send(error.message);
   }

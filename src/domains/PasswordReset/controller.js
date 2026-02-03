@@ -3,26 +3,38 @@ const OTP = require("../otp/model");
 const generateOTP = require("./../../util/generateOTP");
 const { verifyOTP, deleteOTP } = require("./../otp/controller");
 const { sendPasswordResetEmail } = require("../../util/emailService");
-const { hashData } = require("../../util/hashData");
+const { hashData, verifyHashedData } = require("../../util/hashData");
 
-const resetUserPassword = async ({ email, otp, newPassword }) => {
+const resetUserPassword = async ({ token, code, password }) => {
   try {
-    const validOTP = await verifyOTP({ email, otp });
-    if (!validOTP) {
-      throw Error("Invalid code passed, Check your inbox.");
+    // ensure otp record exists
+    const matchedOTPRecord = await OTP.findOne({ otp: token });
+
+    if (!matchedOTPRecord) {
+      throw Error("No otp records found, Invalid code passed, Check your inbox.");
     }
+
+    const { expiresAt, email } = matchedOTPRecord;
+    if (expiresAt < Date.now()) {
+      throw Error("Code has expired. Request for a new one.");
+    };
+
+  const ok = await verifyHashedData(code, token);
+  if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
+
+    
     // now update user record with new password.
     /* eslint-disable no-useless-escape */
 
     const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
 
-    if (newPassword.length < 8) {
+    if (password.length < 8) {
       throw Error("Password is too short!");
-    } else if (!specialChars.test(newPassword)) {
+    } else if (!specialChars.test(password)) {
       throw Error("Password must have special character");
     }
     // hash new password
-    const hashedNewPassword = await hashData(newPassword);
+    const hashedNewPassword = await hashData(password);
     await User.updateOne({ email }, { password: hashedNewPassword });
     await deleteOTP(email);
 
