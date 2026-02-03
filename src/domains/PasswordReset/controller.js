@@ -4,6 +4,9 @@ const generateOTP = require("./../../util/generateOTP");
 const { verifyOTP, deleteOTP } = require("./../otp/controller");
 const { sendPasswordResetEmail } = require("../../util/emailService");
 const { hashData, verifyHashedData } = require("../../util/hashData");
+const {
+  hashPassword
+} = require('../../util/crypto')
 
 const resetUserPassword = async ({ token, code, password }) => {
   try {
@@ -27,15 +30,15 @@ const resetUserPassword = async ({ token, code, password }) => {
     /* eslint-disable no-useless-escape */
 
     const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
-console.log("Password:", password);
-console.log("email", email);
+// console.log("Password:", password);
+// console.log("email", email);
     if (password.length < 8) {
       throw Error("Password is too short!");
     } else if (!specialChars.test(password)) {
       throw Error("Password must have special character");
     }
     // hash new password
-    const hashedNewPassword = await hashData(password);
+    const hashedNewPassword = await hashPassword(password);
     await User.updateOne({ email }, { password: hashedNewPassword });
     await deleteOTP(email);
 
