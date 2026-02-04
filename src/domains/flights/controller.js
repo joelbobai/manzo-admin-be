@@ -66,7 +66,6 @@ const flightCancel = async (data) => {
 // console.log("flight id", data?.id);
     const response = await axios.delete(
       `${AMADEUS_DOMAIN}/v1/booking/flight-orders/${data?.id}`,
-      {},
       {
         headers: {
           "Content-Type": "application/vnd.amadeus+json",
