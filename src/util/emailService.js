@@ -23,8 +23,13 @@ const sendPasswordResetEmail = async ({email, subject, message, duration, genera
   await mailClient.post("/api/password-reset", {email, subject, message, duration, generatedOTP, currentUrl});
 };
 
+const sendSignupEmail = async ({ email, fullName }) => {
+  await mailClient.post("/api/welcome-email", { email, fullName });
+};
+
 module.exports = {
   sendReservationEmail,
   sendIssuanceEmail,
   sendPasswordResetEmail,
+  sendSignupEmail,
 };

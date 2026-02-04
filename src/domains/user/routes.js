@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('./model');
 const Session = require('../session/model');
 const PasswordReset = require('../PasswordReset/model');
+const { sendSignupEmail } = require("../../util/emailService");
 const { requireAuth, requireRole } = require('../../middleware/auth');
 const {
   hashPassword,
@@ -50,7 +51,7 @@ function signRefresh(user) {
 }
 
 
-router.post('/subadmin/signup',  async (req, res) => {
+router.post('/subadmin/signup', requireRole('main_admin'), async (req, res) => {
 try {
     const { fullName, email, password } = req.body;
 
@@ -66,6 +67,8 @@ try {
       passwordHash,
       role: 'sub_admin',
     });
+
+    await sendSignupEmail({fullName, email});
 
     res.status(201).json({
       ...serializeUser(user),
