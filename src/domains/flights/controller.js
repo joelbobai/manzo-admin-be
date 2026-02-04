@@ -304,6 +304,7 @@ try{
       {
         $set: {
           status: "cancelled",
+          userId: bookingInput.userId,
         },
         $setOnInsert: {
           reservationId: bookingInput.reservedId,
