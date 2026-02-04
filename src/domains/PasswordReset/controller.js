@@ -1,5 +1,5 @@
-const User = require("./../user/model");
 const OTP = require("../otp/model");
+const User = require("./../user/model");
 const generateOTP = require("./../../util/generateOTP");
 const { verifyOTP, deleteOTP } = require("./../otp/controller");
 const { sendPasswordResetEmail } = require("../../util/emailService");
