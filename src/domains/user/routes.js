@@ -51,7 +51,7 @@ function signRefresh(user) {
 }
 
 
-router.post('/subadmin/signup', requireRole('main_admin'), async (req, res) => {
+router.post('/subadmin/signup', requireAuth, requireRole('main_admin'), async (req, res) => {
 try {
     const { fullName, email, password } = req.body;
 
