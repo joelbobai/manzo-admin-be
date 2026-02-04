@@ -71,7 +71,7 @@ const flightCancel = async (data) => {
         headers: {
           "Content-Type": "application/vnd.amadeus+json",
           "ama-client-ref": AMA_API_KEY,
-          Authorization: `Bearer ${data?.accessToken}`,
+          "Authorization": `Bearer ${data?.accessToken}`,
         },
       }
     );
