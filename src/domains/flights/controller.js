@@ -61,7 +61,9 @@ function getCommission(iataCode) {
 
 const flightCancel = async (data) => {
   try {
-
+console.log("cancelling flight", AMA_API_KEY);
+console.log("access token", data?.accessToken);
+console.log("flight id", data?.id);
     const response = await axios.post(
       `${AMADEUS_DOMAIN}/v1/booking/flight-orders/${data?.id}`,
       {},
